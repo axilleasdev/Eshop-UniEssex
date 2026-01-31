@@ -8,3 +8,5 @@ obj/
 Thumbs.db
 .DS_Store
 appsettings.Development.json
+appsettings.*.json
+!appsettings.json
