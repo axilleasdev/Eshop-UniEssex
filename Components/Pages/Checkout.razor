@@ -1,0 +1,156 @@
+@page "/checkout"
+@inject ICartService CartService
+@inject NavigationManager Navigation
+@rendermode InteractiveServer
+@using EShop.Services
+@using EShop.Models
+
+<PageTitle>Checkout - EShop</PageTitle>
+
+<h1>Checkout</h1>
+
+@if (!cartItems.Any())
+{
+    <div class="alert alert-warning">
+        Your cart is empty. <a href="/products">Continue shopping</a>
+    </div>
+}
+else
+{
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5>Shipping Information</h5>
+                </div>
+                <div class="card-body">
+                    <EditForm Model="checkoutForm" OnValidSubmit="PlaceOrder">
+                        <DataAnnotationsValidator />
+                        
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">First Name:</label>
+                                <InputText @bind-Value="checkoutForm.FirstName" class="form-control" />
+                                <ValidationMessage For="() => checkoutForm.FirstName" />
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Last Name:</label>
+                                <InputText @bind-Value="checkoutForm.LastName" class="form-control" />
+                                <ValidationMessage For="() => checkoutForm.LastName" />
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label">Email:</label>
+                            <InputText @bind-Value="checkoutForm.Email" class="form-control" type="email" />
+                            <ValidationMessage For="() => checkoutForm.Email" />
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label">Phone:</label>
+                            <InputText @bind-Value="checkoutForm.Phone" class="form-control" />
+                            <ValidationMessage For="() => checkoutForm.Phone" />
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label">Address:</label>
+                            <InputText @bind-Value="checkoutForm.Address" class="form-control" />
+                            <ValidationMessage For="() => checkoutForm.Address" />
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">City:</label>
+                                <InputText @bind-Value="checkoutForm.City" class="form-control" />
+                                <ValidationMessage For="() => checkoutForm.City" />
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Postal Code:</label>
+                                <InputText @bind-Value="checkoutForm.PostalCode" class="form-control" />
+                                <ValidationMessage For="() => checkoutForm.PostalCode" />
+                            </div>
+                        </div>
+                        
+                        <div class="d-flex justify-content-between">
+                            <a href="/cart" class="btn btn-outline-secondary">Back to Cart</a>
+                            <button type="submit" class="btn btn-success btn-lg">Place Order</button>
+                        </div>
+                    </EditForm>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5>Order Summary</h5>
+                </div>
+                <div class="card-body">
+                    @foreach (var item in cartItems)
+                    {
+                        <div class="d-flex justify-content-between mb-2">
+                            <span>@item.ProductName x @item.Quantity</span>
+                            <span>$@item.TotalPrice.ToString("F2")</span>
+                        </div>
+                    }
+                    <hr />
+                    <div class="d-flex justify-content-between fw-bold fs-5">
+                        <span>Total:</span>
+                        <span>$@total.ToString("F2")</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@if (showSuccess)
+{
+    <div class="modal d-block" tabindex="-1" style="background-color: rgba(0,0,0,0.5);">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header bg-success text-white">
+                    <h5 class="modal-title">Order Placed Successfully!</h5>
+                </div>
+                <div class="modal-body">
+                    <p>Thank you for your order, @checkoutForm.FirstName!</p>
+                    <p>We'll send a confirmation email to <strong>@checkoutForm.Email</strong></p>
+                    <p class="mb-0">Order Total: <strong>$@total.ToString("F2")</strong></p>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-primary" @onclick="GoToHome">Continue Shopping</button>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    private List<CartItem> cartItems = new();
+    private decimal total = 0;
+    private CheckoutForm checkoutForm = new();
+    private bool showSuccess = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadCart();
+    }
+
+    private async Task LoadCart()
+    {
+        cartItems = await CartService.GetCartItemsAsync();
+        total = await CartService.GetCartTotalAsync();
+    }
+
+    private async Task PlaceOrder()
+    {
+        showSuccess = true;
+        await Task.Delay(100);
+    }
+
+    private async Task GoToHome()
+    {
+        await CartService.ClearCartAsync();
+        Navigation.NavigateTo("/");
+    }
+}

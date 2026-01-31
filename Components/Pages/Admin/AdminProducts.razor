@@ -1,10 +1,9 @@
 @page "/admin/products"
 @attribute [Authorize(Roles = "Admin")]
-@inject AppDbContext DbContext
+@inject IProductService ProductService
 @rendermode InteractiveServer
-@using EShop.Data
+@using EShop.Services
 @using EShop.Models
-@using Microsoft.EntityFrameworkCore
 @using Microsoft.AspNetCore.Authorization
 
 <PageTitle>Admin - Products</PageTitle>
@@ -45,6 +44,11 @@
                             <ValidationMessage For="() => editingProduct.Stock" />
                         </div>
                     </div>
+                </div>
+                
+                <div class="mb-3">
+                    <label class="form-label">Description:</label>
+                    <InputTextArea @bind-Value="editingProduct.Description" class="form-control" rows="3" />
                 </div>
                 
                 <div class="mb-3">
@@ -116,7 +120,7 @@
 
     private async Task LoadProducts()
     {
-        products = await DbContext.Products.ToListAsync();
+        products = await ProductService.GetAllProductsAsync();
     }
 
     private void ShowAddForm()
@@ -133,7 +137,8 @@
             Name = product.Name,
             Price = product.Price,
             Stock = product.Stock,
-            ImageFileName = product.ImageFileName
+            ImageFileName = product.ImageFileName,
+            Description = product.Description
         };
         showForm = true;
     }
@@ -148,35 +153,20 @@
     {
         if (editingProduct.Id == 0)
         {
-            // Add new product
-            DbContext.Products.Add(editingProduct);
+            await ProductService.CreateProductAsync(editingProduct);
         }
         else
         {
-            // Update existing product
-            var existingProduct = await DbContext.Products.FindAsync(editingProduct.Id);
-            if (existingProduct != null)
-            {
-                existingProduct.Name = editingProduct.Name;
-                existingProduct.Price = editingProduct.Price;
-                existingProduct.Stock = editingProduct.Stock;
-                existingProduct.ImageFileName = editingProduct.ImageFileName;
-            }
+            await ProductService.UpdateProductAsync(editingProduct);
         }
 
-        await DbContext.SaveChangesAsync();
         await LoadProducts();
         CancelEdit();
     }
 
     private async Task DeleteProduct(int id)
     {
-        var product = await DbContext.Products.FindAsync(id);
-        if (product != null)
-        {
-            DbContext.Products.Remove(product);
-            await DbContext.SaveChangesAsync();
-            await LoadProducts();
-        }
+        await ProductService.DeleteProductAsync(id);
+        await LoadProducts();
     }
 }

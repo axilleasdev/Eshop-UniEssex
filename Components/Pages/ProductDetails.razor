@@ -1,0 +1,111 @@
+@page "/products/{id:int}"
+@inject IProductService ProductService
+@inject ICartService CartService
+@inject NavigationManager Navigation
+@rendermode InteractiveServer
+@using EShop.Services
+@using EShop.Models
+
+<PageTitle>@(product?.Name ?? "Product Details") - EShop</PageTitle>
+
+@if (product == null)
+{
+    <div class="alert alert-warning">Product not found.</div>
+    <a href="/products" class="btn btn-primary">Back to Products</a>
+}
+else
+{
+    <div class="row">
+        <div class="col-md-6">
+            @if (!string.IsNullOrEmpty(product.ImageFileName))
+            {
+                <img src="/images/@product.ImageFileName" class="img-fluid rounded" alt="@product.Name" />
+            }
+            else
+            {
+                <div class="bg-light d-flex align-items-center justify-content-center rounded" style="height: 400px;">
+                    <span class="text-muted fs-3">No Image Available</span>
+                </div>
+            }
+        </div>
+        
+        <div class="col-md-6">
+            <h1>@product.Name</h1>
+            
+            <div class="mb-3">
+                <span class="fs-2 text-primary fw-bold">$@product.Price.ToString("F2")</span>
+            </div>
+            
+            <div class="mb-3">
+                @if (product.IsAvailable)
+                {
+                    <span class="badge bg-success fs-6">In Stock (@product.Stock available)</span>
+                }
+                else
+                {
+                    <span class="badge bg-danger fs-6">Out of Stock</span>
+                }
+            </div>
+            
+            @if (!string.IsNullOrEmpty(product.Description))
+            {
+                <div class="mb-4">
+                    <h5>Description</h5>
+                    <p>@product.Description</p>
+                </div>
+            }
+            
+            <div class="mb-3">
+                <label class="form-label">Quantity:</label>
+                <input type="number" @bind="quantity" min="1" max="@product.Stock" class="form-control" style="width: 100px;" />
+            </div>
+            
+            @if (product.IsAvailable)
+            {
+                <button class="btn btn-primary btn-lg me-2" @onclick="AddToCart">
+                    <i class="bi bi-cart-plus"></i> Add to Cart
+                </button>
+            }
+            else
+            {
+                <button class="btn btn-secondary btn-lg" disabled>Out of Stock</button>
+            }
+            
+            <a href="/products" class="btn btn-outline-secondary btn-lg">Back to Products</a>
+            
+            @if (showMessage)
+            {
+                <div class="alert alert-success mt-3">
+                    Added @quantity x @product.Name to cart!
+                </div>
+            }
+        </div>
+    </div>
+}
+
+@code {
+    [Parameter]
+    public int Id { get; set; }
+
+    private Product? product;
+    private int quantity = 1;
+    private bool showMessage = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        product = await ProductService.GetProductByIdAsync(Id);
+    }
+
+    private async Task AddToCart()
+    {
+        if (product != null && product.IsAvailable)
+        {
+            await CartService.AddToCartAsync(product.Id, quantity);
+            showMessage = true;
+            
+            await Task.Delay(3000);
+            showMessage = false;
+            StateHasChanged();
+        }
+    }
+}

@@ -2,10 +2,8 @@ using System.ComponentModel.DataAnnotations;
 
 namespace EShop.Models
 {
-    public class Admin
+    public class Admin : BaseEntity
     {
-        public int Id { get; set; }
-        
         [Required]
         [StringLength(50)]
         public string Username { get; set; } = string.Empty;

@@ -29,6 +29,8 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 
 // Add custom services
 builder.Services.AddScoped<AuthService>();
+builder.Services.AddScoped<IProductService, ProductService>();
+builder.Services.AddScoped<ICartService, CartService>();
 
 var app = builder.Build();
 
@@ -80,7 +82,9 @@ app.MapGet("/auth/login", async (HttpContext context, string username, string pa
 app.MapGet("/auth/logout", async (HttpContext context) =>
 {
     await context.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
-    context.Response.Redirect("/");
+    // Force full page reload to clear Blazor circuit
+    context.Response.Headers["Cache-Control"] = "no-cache, no-store, must-revalidate";
+    context.Response.Redirect("/", permanent: false);
 });
 
 app.MapRazorComponents<App>()

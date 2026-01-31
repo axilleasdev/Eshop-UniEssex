@@ -49,3 +49,22 @@ h1:focus {
 .darker-border-checkbox.form-check-input {
     border-color: #929292;
 }
+
+
+/* Horizontal Layout */
+.page-horizontal {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+}
+
+.main-content {
+    flex: 1;
+    padding-top: 1rem;
+}
+
+.navbar.sticky-top {
+    position: sticky;
+    top: 0;
+    z-index: 1030;
+}
