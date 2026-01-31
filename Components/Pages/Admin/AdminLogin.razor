@@ -1,9 +1,5 @@
 @page "/admin/login"
-@using EShop.Services
-@inject AuthService AuthService
 @inject NavigationManager Navigation
-@rendermode InteractiveServer
-@using System.ComponentModel.DataAnnotations
 
 <PageTitle>Admin Login</PageTitle>
 
@@ -15,28 +11,24 @@
                     <h3>Admin Login</h3>
                 </div>
                 <div class="card-body">
-                    <EditForm Model="loginModel" OnValidSubmit="HandleLogin">
-                        <DataAnnotationsValidator />
-                        
+                    <form method="get" action="/auth/login">
                         <div class="mb-3">
                             <label class="form-label">Username:</label>
-                            <InputText @bind-Value="loginModel.Username" class="form-control" />
-                            <ValidationMessage For="() => loginModel.Username" />
+                            <input type="text" name="username" class="form-control" required />
                         </div>
                         
                         <div class="mb-3">
                             <label class="form-label">Password:</label>
-                            <InputText @bind-Value="loginModel.Password" type="password" class="form-control" />
-                            <ValidationMessage For="() => loginModel.Password" />
+                            <input type="password" name="password" class="form-control" required />
                         </div>
                         
-                        @if (!string.IsNullOrEmpty(errorMessage))
+                        @if (showError)
                         {
-                            <div class="alert alert-danger">@errorMessage</div>
+                            <div class="alert alert-danger">Invalid username or password.</div>
                         }
                         
                         <button type="submit" class="btn btn-primary">Login</button>
-                    </EditForm>
+                    </form>
                 </div>
             </div>
         </div>
@@ -44,31 +36,11 @@
 </div>
 
 @code {
-    private LoginModel loginModel = new();
-    private string errorMessage = string.Empty;
+    private bool showError = false;
 
-    private async Task HandleLogin()
+    protected override void OnInitialized()
     {
-        errorMessage = string.Empty;
-        
-        var isValid = await AuthService.ValidateAdminAsync(loginModel.Username, loginModel.Password);
-        
-        if (isValid)
-        {
-            Navigation.NavigateTo("/admin/products");
-        }
-        else
-        {
-            errorMessage = "Invalid username or password.";
-        }
-    }
-
-    public class LoginModel
-    {
-        [Required]
-        public string Username { get; set; } = string.Empty;
-        
-        [Required]
-        public string Password { get; set; } = string.Empty;
+        var uri = new Uri(Navigation.Uri);
+        showError = uri.Query.Contains("error=1");
     }
 }
