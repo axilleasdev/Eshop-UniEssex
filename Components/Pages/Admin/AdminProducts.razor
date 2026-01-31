@@ -1,0 +1,180 @@
+@page "/admin/products"
+@inject AppDbContext DbContext
+@rendermode InteractiveServer
+@using EShop.Data
+@using EShop.Models
+@using Microsoft.EntityFrameworkCore
+
+<PageTitle>Admin - Products</PageTitle>
+
+<h3>Product Management</h3>
+
+<button class="btn btn-success mb-3" @onclick="ShowAddForm">Add New Product</button>
+
+@if (showForm)
+{
+    <div class="card mb-4">
+        <div class="card-header">
+            <h5>@(editingProduct?.Id > 0 ? "Edit Product" : "Add New Product")</h5>
+        </div>
+        <div class="card-body">
+            <EditForm Model="editingProduct" OnValidSubmit="SaveProduct">
+                <DataAnnotationsValidator />
+                
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label class="form-label">Name:</label>
+                            <InputText @bind-Value="editingProduct.Name" class="form-control" />
+                            <ValidationMessage For="() => editingProduct.Name" />
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="mb-3">
+                            <label class="form-label">Price:</label>
+                            <InputNumber @bind-Value="editingProduct.Price" class="form-control" />
+                            <ValidationMessage For="() => editingProduct.Price" />
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="mb-3">
+                            <label class="form-label">Stock:</label>
+                            <InputNumber @bind-Value="editingProduct.Stock" class="form-control" />
+                            <ValidationMessage For="() => editingProduct.Stock" />
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="mb-3">
+                    <label class="form-label">Image File Name:</label>
+                    <InputText @bind-Value="editingProduct.ImageFileName" class="form-control" />
+                </div>
+                
+                <button type="submit" class="btn btn-primary">Save</button>
+                <button type="button" class="btn btn-secondary ms-2" @onclick="CancelEdit">Cancel</button>
+            </EditForm>
+        </div>
+    </div>
+}
+
+<div class="table-responsive">
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Image</th>
+                <th>Name</th>
+                <th>Price</th>
+                <th>Stock</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var product in products)
+            {
+                <tr>
+                    <td>@product.Id</td>
+                    <td>
+                        @if (!string.IsNullOrEmpty(product.ImageFileName))
+                        {
+                            <img src="/images/@product.ImageFileName" alt="@product.Name" style="width: 50px; height: 50px; object-fit: cover;" />
+                        }
+                        else
+                        {
+                            <span class="text-muted">No image</span>
+                        }
+                    </td>
+                    <td>@product.Name</td>
+                    <td>$@product.Price.ToString("F2")</td>
+                    <td>@product.Stock</td>
+                    <td>
+                        <button class="btn btn-sm btn-warning me-1" @onclick="() => EditProduct(product)">Edit</button>
+                        <button class="btn btn-sm btn-danger" @onclick="() => DeleteProduct(product.Id)">Delete</button>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
+
+@if (!products.Any())
+{
+    <div class="alert alert-info">No products found. Add your first product!</div>
+}
+
+@code {
+    private List<Product> products = new();
+    private Product editingProduct = new();
+    private bool showForm = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadProducts();
+    }
+
+    private async Task LoadProducts()
+    {
+        products = await DbContext.Products.ToListAsync();
+    }
+
+    private void ShowAddForm()
+    {
+        editingProduct = new Product();
+        showForm = true;
+    }
+
+    private void EditProduct(Product product)
+    {
+        editingProduct = new Product
+        {
+            Id = product.Id,
+            Name = product.Name,
+            Price = product.Price,
+            Stock = product.Stock,
+            ImageFileName = product.ImageFileName
+        };
+        showForm = true;
+    }
+
+    private void CancelEdit()
+    {
+        showForm = false;
+        editingProduct = new Product();
+    }
+
+    private async Task SaveProduct()
+    {
+        if (editingProduct.Id == 0)
+        {
+            // Add new product
+            DbContext.Products.Add(editingProduct);
+        }
+        else
+        {
+            // Update existing product
+            var existingProduct = await DbContext.Products.FindAsync(editingProduct.Id);
+            if (existingProduct != null)
+            {
+                existingProduct.Name = editingProduct.Name;
+                existingProduct.Price = editingProduct.Price;
+                existingProduct.Stock = editingProduct.Stock;
+                existingProduct.ImageFileName = editingProduct.ImageFileName;
+            }
+        }
+
+        await DbContext.SaveChangesAsync();
+        await LoadProducts();
+        CancelEdit();
+    }
+
+    private async Task DeleteProduct(int id)
+    {
+        var product = await DbContext.Products.FindAsync(id);
+        if (product != null)
+        {
+            DbContext.Products.Remove(product);
+            await DbContext.SaveChangesAsync();
+            await LoadProducts();
+        }
+    }
+}
