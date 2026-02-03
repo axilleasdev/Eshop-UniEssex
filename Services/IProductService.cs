@@ -11,5 +11,6 @@ namespace EShop.Services
         Task<Product> UpdateProductAsync(Product product);
         Task<bool> DeleteProductAsync(int id);
         Task<bool> IsProductAvailableAsync(int id);
+        Task<bool> ReduceStockAsync(int productId, int quantity);
     }
 }

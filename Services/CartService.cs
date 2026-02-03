@@ -15,18 +15,26 @@ namespace EShop.Services
             _productService = productService;
         }
 
-        public async Task AddToCartAsync(int productId, int quantity = 1)
+        public async Task<bool> AddToCartAsync(int productId, int quantity = 1)
         {
             var cart = await GetCartItemsAsync();
             var product = await _productService.GetProductByIdAsync(productId);
 
-            if (product == null || !product.IsAvailable) return;
+            if (product == null || !product.IsAvailable) return false;
 
             var existingItem = cart.FirstOrDefault(c => c.ProductId == productId);
-            
+            var currentQuantityInCart = existingItem?.Quantity ?? 0;
+            var newTotalQuantity = currentQuantityInCart + quantity;
+
+            // Check if new total quantity exceeds available stock
+            if (newTotalQuantity > product.Stock)
+            {
+                return false; // Cannot add more than available stock
+            }
+
             if (existingItem != null)
             {
-                existingItem.Quantity += quantity;
+                existingItem.Quantity = newTotalQuantity;
             }
             else
             {
@@ -41,6 +49,7 @@ namespace EShop.Services
             }
 
             await _sessionStorage.SetAsync(CartKey, cart);
+            return true;
         }
 
         public async Task RemoveFromCartAsync(int productId)

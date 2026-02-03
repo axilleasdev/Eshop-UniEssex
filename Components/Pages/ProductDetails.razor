@@ -58,6 +58,10 @@ else
             <div class="mb-3">
                 <label class="form-label">Quantity:</label>
                 <input type="number" @bind="quantity" min="1" max="@product.Stock" class="form-control" style="width: 100px;" />
+                @if (quantity > product.Stock)
+                {
+                    <small class="text-danger">Only @product.Stock available in stock</small>
+                }
             </div>
             
             @if (product.IsAvailable)
@@ -76,7 +80,7 @@ else
             @if (showMessage)
             {
                 <div class="alert alert-success mt-3">
-                    Added @quantity x @product.Name to cart!
+                    @cartMessage
                 </div>
             }
         </div>
@@ -90,6 +94,7 @@ else
     private Product? product;
     private int quantity = 1;
     private bool showMessage = false;
+    private string cartMessage = string.Empty;
 
     protected override async Task OnInitializedAsync()
     {
@@ -100,8 +105,20 @@ else
     {
         if (product != null && product.IsAvailable)
         {
+            // Check if quantity exceeds available stock
+            if (quantity > product.Stock)
+            {
+                showMessage = true;
+                cartMessage = $"Only {product.Stock} available in stock!";
+                await Task.Delay(3000);
+                showMessage = false;
+                StateHasChanged();
+                return;
+            }
+
             await CartService.AddToCartAsync(product.Id, quantity);
             showMessage = true;
+            cartMessage = $"Added {quantity} x {product.Name} to cart!";
             
             await Task.Delay(3000);
             showMessage = false;

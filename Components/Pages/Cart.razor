@@ -1,5 +1,6 @@
 @page "/cart"
 @inject ICartService CartService
+@inject IProductService ProductService
 @inject NavigationManager Navigation
 @rendermode InteractiveServer
 @using EShop.Services
@@ -8,6 +9,14 @@
 <PageTitle>Shopping Cart - EShop</PageTitle>
 
 <h1>Shopping Cart</h1>
+
+@if (!string.IsNullOrEmpty(errorMessage))
+{
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+        @errorMessage
+        <button type="button" class="btn-close" @onclick="() => errorMessage = null"></button>
+    </div>
+}
 
 @if (!cartItems.Any())
 {
@@ -43,9 +52,10 @@ else
                         </td>
                         <td>$@item.Price.ToString("F2")</td>
                         <td>
-                            <input type="number" value="@item.Quantity" min="1" 
+                            <input type="number" value="@item.Quantity" min="1" max="@GetMaxQuantity(item.ProductId)"
                                    @onchange="@((e) => UpdateQuantity(item.ProductId, int.Parse(e.Value?.ToString() ?? "1")))"
                                    class="form-control" style="width: 80px;" />
+                            <small class="text-muted">Max: @GetMaxQuantity(item.ProductId)</small>
                         </td>
                         <td>$@item.TotalPrice.ToString("F2")</td>
                         <td>
@@ -75,10 +85,13 @@ else
 @code {
     private List<CartItem> cartItems = new();
     private decimal total = 0;
+    private Dictionary<int, int> productStocks = new();
+    private string? errorMessage;
 
     protected override async Task OnInitializedAsync()
     {
         await LoadCart();
+        await LoadProductStocks();
     }
 
     private async Task LoadCart()
@@ -87,8 +100,43 @@ else
         total = await CartService.GetCartTotalAsync();
     }
 
+    private async Task LoadProductStocks()
+    {
+        productStocks.Clear();
+        foreach (var item in cartItems)
+        {
+            var product = await ProductService.GetProductByIdAsync(item.ProductId);
+            if (product != null)
+            {
+                productStocks[item.ProductId] = product.Stock;
+            }
+        }
+    }
+
     private async Task UpdateQuantity(int productId, int quantity)
     {
+        // Clear previous error
+        errorMessage = null;
+
+        // Check stock limit
+        if (productStocks.ContainsKey(productId) && quantity > productStocks[productId])
+        {
+            var item = cartItems.FirstOrDefault(c => c.ProductId == productId);
+            var productName = item?.ProductName ?? "Product";
+            var maxStock = productStocks[productId];
+            
+            errorMessage = $"Cannot set quantity to {quantity}. Only {maxStock} '{productName}' available in stock!";
+            
+            // Auto-hide error after 5 seconds
+            _ = Task.Delay(5000).ContinueWith(_ => 
+            {
+                errorMessage = null;
+                InvokeAsync(StateHasChanged);
+            });
+            
+            return; // Don't update if exceeds stock
+        }
+
         await CartService.UpdateQuantityAsync(productId, quantity);
         await LoadCart();
     }
@@ -97,11 +145,18 @@ else
     {
         await CartService.RemoveFromCartAsync(productId);
         await LoadCart();
+        await LoadProductStocks();
     }
 
     private async Task ClearCart()
     {
         await CartService.ClearCartAsync();
         await LoadCart();
+        productStocks.Clear();
+    }
+
+    private int GetMaxQuantity(int productId)
+    {
+        return productStocks.ContainsKey(productId) ? productStocks[productId] : 99;
     }
 }

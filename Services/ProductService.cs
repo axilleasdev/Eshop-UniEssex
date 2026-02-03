@@ -69,5 +69,17 @@ namespace EShop.Services
             var product = await _context.Products.FindAsync(id);
             return product?.IsAvailable ?? false;
         }
+
+        public async Task<bool> ReduceStockAsync(int productId, int quantity)
+        {
+            var product = await _context.Products.FindAsync(productId);
+            if (product == null || product.Stock < quantity)
+                return false;
+
+            product.Stock -= quantity;
+            product.OnUpdate();
+            await _context.SaveChangesAsync();
+            return true;
+        }
     }
 }

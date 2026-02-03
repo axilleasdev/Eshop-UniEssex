@@ -1,5 +1,6 @@
 @page "/checkout"
 @inject ICartService CartService
+@inject IProductService ProductService
 @inject NavigationManager Navigation
 @rendermode InteractiveServer
 @using EShop.Services
@@ -144,6 +145,17 @@ else
 
     private async Task PlaceOrder()
     {
+        // Reduce stock for each item in cart
+        foreach (var item in cartItems)
+        {
+            var success = await ProductService.ReduceStockAsync(item.ProductId, item.Quantity);
+            if (!success)
+            {
+                // Handle insufficient stock (optional: show error message)
+                return;
+            }
+        }
+
         showSuccess = true;
         await Task.Delay(100);
     }

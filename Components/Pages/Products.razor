@@ -77,8 +77,15 @@
 
     private async Task AddToCart(Product product)
     {
-        await CartService.AddToCartAsync(product.Id);
-        cartMessage = $"'{product.Name}' added to cart!";
+        var success = await CartService.AddToCartAsync(product.Id);
+        if (success)
+        {
+            cartMessage = $"'{product.Name}' added to cart!";
+        }
+        else
+        {
+            cartMessage = $"Cannot add '{product.Name}' - not enough stock!";
+        }
         
         await Task.Delay(3000);
         cartMessage = null;

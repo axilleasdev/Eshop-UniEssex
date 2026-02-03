@@ -4,7 +4,7 @@ namespace EShop.Services
 {
     public interface ICartService
     {
-        Task AddToCartAsync(int productId, int quantity = 1);
+        Task<bool> AddToCartAsync(int productId, int quantity = 1);
         Task RemoveFromCartAsync(int productId);
         Task UpdateQuantityAsync(int productId, int quantity);
         Task ClearCartAsync();
