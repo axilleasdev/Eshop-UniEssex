@@ -101,11 +101,11 @@ else
         product = await ProductService.GetProductByIdAsync(Id);
     }
 
+    // Stock validation πριν την προσθήκη στο καλάθι
     private async Task AddToCart()
     {
         if (product != null && product.IsAvailable)
         {
-            // Check if quantity exceeds available stock
             if (quantity > product.Stock)
             {
                 showMessage = true;

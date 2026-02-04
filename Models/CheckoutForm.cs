@@ -2,6 +2,7 @@ using System.ComponentModel.DataAnnotations;
 
 namespace EShop.Models
 {
+    // Model για Checkout Form - Data Validation με Attributes
     public class CheckoutForm
     {
         [Required(ErrorMessage = "First name is required")]

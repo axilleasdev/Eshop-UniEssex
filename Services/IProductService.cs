@@ -2,6 +2,7 @@ using EShop.Models;
 
 namespace EShop.Services
 {
+    // Interface για Product operations - Abstraction & Dependency Injection
     public interface IProductService
     {
         Task<List<Product>> GetAllProductsAsync();

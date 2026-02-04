@@ -4,6 +4,8 @@ using Microsoft.EntityFrameworkCore;
 
 namespace EShop.Services
 {
+    // Authentication Service - Single Responsibility
+    // Διαχειρίζεται μόνο την αυθεντικοποίηση
     public class AuthService
     {
         private readonly AppDbContext _context;
@@ -13,34 +15,13 @@ namespace EShop.Services
             _context = context;
         }
 
+        // Επαλήθευση admin credentials
         public async Task<bool> ValidateAdminAsync(string username, string password)
         {
             var admin = await _context.Admins
-                .FirstOrDefaultAsync(a => a.Username == username);
+                .FirstOrDefaultAsync(a => a.Username == username && a.Password == password);
             
-            if (admin == null)
-                return false;
-
-            // Temporary: Check both BCrypt and plain text for compatibility
-            try
-            {
-                // Try BCrypt first
-                if (BCrypt.Net.BCrypt.Verify(password, admin.Password))
-                    return true;
-            }
-            catch
-            {
-                // If BCrypt fails, try plain text (for backward compatibility)
-                if (admin.Password == password)
-                    return true;
-            }
-
-            return false;
-        }
-
-        public string HashPassword(string password)
-        {
-            return BCrypt.Net.BCrypt.HashPassword(password);
+            return admin != null;
         }
     }
 }

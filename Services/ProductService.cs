@@ -4,10 +4,13 @@ using Microsoft.EntityFrameworkCore;
 
 namespace EShop.Services
 {
+    // Implementation του IProductService - Single Responsibility Principle
+    // Διαχειρίζεται μόνο τη λογική των προϊόντων
     public class ProductService : IProductService
     {
         private readonly AppDbContext _context;
 
+        // Constructor Injection - Dependency Injection pattern
         public ProductService(AppDbContext context)
         {
             _context = context;

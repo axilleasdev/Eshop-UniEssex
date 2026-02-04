@@ -88,6 +88,7 @@ else
     private Dictionary<int, int> productStocks = new();
     private string? errorMessage;
 
+    // Encapsulation - private μέθοδοι για εσωτερική λογική
     protected override async Task OnInitializedAsync()
     {
         await LoadCart();

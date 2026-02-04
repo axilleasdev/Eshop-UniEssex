@@ -143,6 +143,7 @@ else
         total = await CartService.GetCartTotalAsync();
     }
 
+    // Business logic - μείωση αποθέματος και ολοκλήρωση παραγγελίας
     private async Task PlaceOrder()
     {
         // Reduce stock for each item in cart
@@ -151,7 +152,6 @@ else
             var success = await ProductService.ReduceStockAsync(item.ProductId, item.Quantity);
             if (!success)
             {
-                // Handle insufficient stock (optional: show error message)
                 return;
             }
         }

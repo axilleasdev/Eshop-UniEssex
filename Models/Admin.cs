@@ -2,6 +2,7 @@ using System.ComponentModel.DataAnnotations;
 
 namespace EShop.Models
 {
+    // Κλάση Admin - Inheritance από BaseEntity
     public class Admin : BaseEntity
     {
         [Required]

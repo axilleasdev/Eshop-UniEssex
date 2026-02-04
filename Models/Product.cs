@@ -2,6 +2,7 @@ using System.ComponentModel.DataAnnotations;
 
 namespace EShop.Models
 {
+    // Κλάση Product - Inheritance από BaseEntity, Encapsulation με properties
     public class Product : BaseEntity
     {
         [Required]
@@ -19,12 +20,13 @@ namespace EShop.Models
         [StringLength(1000)]
         public string? Description { get; set; }
 
+        // Computed property - ελέγχει διαθεσιμότητα
         public bool IsAvailable => Stock > 0;
 
+        // Override - Polymorphism
         public override void OnUpdate()
         {
             base.OnUpdate();
-            // Additional product-specific logic
         }
     }
 }

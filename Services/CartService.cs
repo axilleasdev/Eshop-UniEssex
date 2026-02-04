@@ -3,12 +3,15 @@ using Microsoft.AspNetCore.Components.Server.ProtectedBrowserStorage;
 
 namespace EShop.Services
 {
+    // Implementation του ICartService - Single Responsibility
+    // Διαχειρίζεται το session storage και τη λογική του καλαθιού
     public class CartService : ICartService
     {
         private readonly ProtectedSessionStorage _sessionStorage;
         private readonly IProductService _productService;
         private const string CartKey = "shopping_cart";
 
+        // Constructor Injection - εξάρτηση από IProductService
         public CartService(ProtectedSessionStorage sessionStorage, IProductService productService)
         {
             _sessionStorage = sessionStorage;

@@ -1,5 +1,7 @@
 namespace EShop.Models
 {
+    // Model για Menu - Scaffolded από υπάρχοντα πίνακα
+    // Δεν συμμετέχει στα migrations (ExcludeFromMigrations)
     public class Menu
     {
         public int Id { get; set; }

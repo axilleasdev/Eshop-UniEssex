@@ -65,6 +65,7 @@
     private List<Product> products = new();
     private string? cartMessage;
 
+    // Dependency Injection - χρήση των services μέσω @inject
     protected override async Task OnInitializedAsync()
     {
         products = await ProductService.GetAvailableProductsAsync();

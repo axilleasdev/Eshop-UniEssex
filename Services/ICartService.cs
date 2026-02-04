@@ -2,6 +2,7 @@ using EShop.Models;
 
 namespace EShop.Services
 {
+    // Interface για Cart operations - Abstraction
     public interface ICartService
     {
         Task<bool> AddToCartAsync(int productId, int quantity = 1);

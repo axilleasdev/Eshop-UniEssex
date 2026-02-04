@@ -3,17 +3,20 @@ using EShop.Models;
 
 namespace EShop.Data
 {
+    // Database Context - Entity Framework Core
+    // Διαχειρίζεται τη σύνδεση με τη βάση και τα DbSets
     public class AppDbContext : DbContext
     {
         public AppDbContext(DbContextOptions<AppDbContext> options) : base(options) { }
 
+        // DbSets - αντιπροσωπεύουν πίνακες στη βάση
         public DbSet<Product> Products { get; set; }
         public DbSet<Admin> Admins { get; set; }
         public DbSet<Menu> Menus { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
-            // Configure Menu to map to existing table (exclude from migrations)
+            // Configuration για υπάρχοντα πίνακα Menu
             modelBuilder.Entity<Menu>(entity =>
             {
                 entity.ToTable("menus");
@@ -23,7 +26,7 @@ namespace EShop.Data
                 entity.Property(e => e.Type).HasColumnName("type");
             });
 
-            // Exclude Menu from migrations since it already exists
+            // Exclude από migrations (ο πίνακας υπάρχει ήδη)
             modelBuilder.Entity<Menu>().ToTable("menus", t => t.ExcludeFromMigrations());
         }
     }

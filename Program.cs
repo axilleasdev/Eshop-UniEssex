@@ -27,7 +27,8 @@ builder.Services.AddCascadingAuthenticationState();
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
 
-// Add custom services
+// Dependency Injection - καταχώρηση custom services
+// Scoped lifetime: ένα instance ανά HTTP request
 builder.Services.AddScoped<AuthService>();
 builder.Services.AddScoped<IProductService, ProductService>();
 builder.Services.AddScoped<ICartService, CartService>();
@@ -90,4 +91,4 @@ app.MapGet("/auth/logout", async (HttpContext context) =>
 app.MapRazorComponents<App>()
     .AddInteractiveServerRenderMode();
 
-app.Run();
+app.Run("http://localhost:5000");
